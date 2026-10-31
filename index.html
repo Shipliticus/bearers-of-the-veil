@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<meta name="description" content="Explore haunted Bellwether in a supernatural 3D mystery adventure.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<title>Bearers of the Veil</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;height:100dvh;overflow:hidden;background:#080d18;color:#f5f0e7;font-family:system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none}canvas{display:block}
+#hud{position:fixed;inset:calc(env(safe-area-inset-top) + 10px) calc(env(safe-area-inset-right) + 10px) auto calc(env(safe-area-inset-left) + 10px);display:flex;justify-content:space-between;gap:8px;pointer-events:none;z-index:2}.glass{background:#101827d9;border:1px solid #66718a;border-radius:13px;padding:9px 12px;backdrop-filter:blur(8px);box-shadow:0 5px 20px #0007}.brand{font: bold 15px Georgia;color:#f0d3a0}.sub{font-size:11px;color:#bac4d4}.stats{text-align:right;font-size:11px;line-height:1.6}.stats b{color:#f0c77f}
+#message{position:fixed;top:82px;left:50%;transform:translateX(-50%);background:#151d30eF;border:1px solid #a38bc4;border-radius:12px;padding:9px 13px;font-size:13px;text-align:center;max-width:90vw;z-index:3;opacity:0;transition:opacity .2s;pointer-events:none}
+#bottom{position:fixed;z-index:3;bottom:calc(env(safe-area-inset-bottom) + 12px);left:calc(env(safe-area-inset-left) + 12px);right:calc(env(safe-area-inset-right) + 12px);display:flex;justify-content:space-between;align-items:end;gap:8px;pointer-events:none}#roster,#move,#actions{pointer-events:auto}.roster{display:flex;gap:4px}.person{background:#141d2ddd;color:#fff;border:1px solid #66718a;border-radius:10px;padding:6px 7px;font-size:10px}.person.active{border:2px solid #e8bd72;background:#39334e}.person span{font-size:17px;display:block}.person b{display:block}
+#move{width:116px;height:116px;border-radius:50%;background:#27334bcc;border:2px solid #9ca9bc;position:relative;touch-action:none;flex:none}.nub{position:absolute;width:44px;height:44px;left:34px;top:34px;border-radius:50%;background:#d9c9a5d9;border:2px solid #fff9;pointer-events:none}
+#actions{display:flex;flex-direction:column;gap:7px}.act{border:1px solid #b69b73;border-radius:50%;width:58px;height:58px;background:#564875ed;color:#fff;font-weight:800;font-size:10px}.act.secondary{width:46px;height:46px;background:#26364b}
+#hint{position:fixed;bottom:137px;left:50%;transform:translateX(-50%);font-size:11px;color:#eee3d0;background:#111a2ddd;border:1px solid #66718a;border-radius:20px;padding:7px 12px;white-space:nowrap;z-index:2;pointer-events:none}
+#intro{position:fixed;inset:0;z-index:5;display:grid;place-items:center;padding:20px;background:linear-gradient(#09101bd9,#09101bf2)}.card{max-width:480px;background:linear-gradient(145deg,#202b40,#171d2c);border:1px solid #74648d;border-radius:20px;padding:24px;text-align:center;box-shadow:0 20px 70px #000b}.card h1{font:36px Georgia;color:#f3dfbd;margin:8px 0}.card p{color:#c5ceda;font-size:14px}.start{width:100%;border:0;border-radius:12px;padding:14px;background:linear-gradient(100deg,#8868ba,#534781);color:#fff;font-weight:800;font-size:15px}
+#journal{display:none;position:fixed;z-index:4;inset:12% 7%;background:#111a2bf2;border:1px solid #897aa1;border-radius:18px;padding:18px;overflow:auto}#journal h2{font:24px Georgia;color:#f1d6a8}#journal button{padding:10px;border:0;border-radius:9px;background:#37435b;color:white}
+@media(max-width:550px){.brand{font-size:12px}.glass{padding:8px}.person{padding:5px 4px;font-size:9px}.person span{font-size:15px}#move{width:104px;height:104px}.nub{left:29px;top:29px}.act{width:52px;height:52px}#hint{bottom:126px}}
+#loading,#loadError{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:24px;background:#080d18;color:#f5f0e7;text-align:center}
+#loading .panel,#loadError .panel{max-width:420px;border:1px solid #74648d;border-radius:18px;padding:24px;background:#182236;box-shadow:0 18px 60px #000b}
+#loading h2,#loadError h2{font:26px Georgia;color:#f3dfbd}
+#loading p,#loadError p{color:#c5ceda;font-size:14px;line-height:1.5}
+.loader{width:34px;height:34px;border:3px solid #536079;border-top-color:#e8bd72;border-radius:50%;animation:spin .8s linear infinite;margin:18px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+@media(max-width:390px){#bottom{gap:5px}#move{width:88px;height:88px}.nub{left:21px;top:21px;width:42px;height:42px}.person{font-size:8px;padding:4px 3px}.person span{font-size:14px}.act{width:47px;height:47px}}
+</style>
+</head>
+<body>
+<div id="loading"><div class="panel"><div style="font-size:30px;color:#e8bd72">✧ ◈ ✧</div><h2>Opening Bellwether</h2><div class="loader"></div><p>Preparing the 3D town… Keep your browser online while the game loads.</p></div></div>
+<div id="loadError" style="display:none"><div class="panel"><h2>The Veil Is Unstable</h2><p id="errorText">The 3D engine could not be loaded.</p><p>Check your connection, then try again. For best results, open the hosted game in the latest version of Chrome or Safari rather than an in-app file preview.</p><button id="retry">TRY AGAIN</button></div></div>
+<div id="hud"><div class="glass"><div class="brand">✧ BEARERS OF THE VEIL</div><div class="sub">CASE 01 · THE BELLWETHER HAUNTING</div></div><div class="glass stats">IDENTITY CLUES <b id="clues">0 / 3</b><br>PEOPLE SAFE <b id="saved">0</b> · RESOLVE <b id="resolve">3</b></div></div>
+<div id="message"></div><div id="hint">Explore the town · Approach glowing clues</div>
+<div id="bottom"><div id="roster" class="roster"></div><div id="move"><div class="nub" id="nub"></div></div><div id="actions"><button class="act" id="examine">EXAMINE</button><button class="act secondary" id="enter">ENTER</button><button class="act secondary" id="power">POWER</button><button class="act secondary" id="notes">NOTES</button></div></div>
+<div id="journal"><h2>Field Journal</h2><p id="journalText">The clocks stopped at 11:13. A bell rings beneath the abandoned chapel. Who was the bell-ringer in life?</p><button id="close">Close</button></div>
+<div id="intro"><div class="card"><div style="font-size:30px;color:#e8bd72">✧ ◈ ✧</div><div style="letter-spacing:3px;color:#d7b779;font-size:11px;font-weight:800">A THIRD-PERSON 3D ADVENTURE</div><h1>Bearers of the Veil</h1><p>Explore Bellwether in 3D, enter haunted buildings, search indoor rooms, confront spirits and face the Bell Tower Wraith. Characters now animate as they walk, investigate and perform supernatural rites.</p><p><b>Mobile:</b> Joystick to move; ENTER at doors; EXAMINE clues; POWER during encounters. <b>Desktop:</b> WASD / arrows, Space, E to enter, F for power, 1–5 to switch.</p><button class="start" id="start">ENTER BELLWETHER</button><p class="sub">3D graphics load from Three.js when you're online.</p></div></div>
+<script type="module">
+(async()=>{
+try {
+let THREE;
+try {
+  THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+} catch (primaryError) {
+  THREE = await import('https://unpkg.com/three@0.160.0/build/three.module.js');
+}
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x111a2b);scene.fog=new THREE.FogExp2(0x151d2d,.023);
+const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.1,180);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;document.body.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0x9ba9cb,0x25202a,2.0));
+const moon=new THREE.DirectionalLight(0xc3d2ff,2.4);moon.position.set(-12,24,10);moon.castShadow=true;moon.shadow.mapSize.set(2048,2048);moon.shadow.camera.left=-35;moon.shadow.camera.right=35;moon.shadow.camera.top=35;moon.shadow.camera.bottom=-35;scene.add(moon);
+const warm=new THREE.PointLight(0xffbd78,45,25);warm.position.set(0,5,-5);scene.add(warm);
+const mat=(color,rough=.85,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
+const M={ground:mat(0x252b32),road:mat(0x41404a),wall:mat(0x3b4050),roof:mat(0x202638),wood:mat(0x493a37),window: new THREE.MeshStandardMaterial({color:0xffd99b,emissive:0xffb44b,emissiveIntensity:1.5}),grass:mat(0x273b35),skin:mat(0xc99e80),black:mat(0x15131b),blue:mat(0x293b5a),red:mat(0x6f2834),gold:mat(0xc5a36a, .35,.5),ghost:new THREE.MeshStandardMaterial({color:0x9cc9ee,transparent:true,opacity:.55,emissive:0x426b9a,emissiveIntensity:1.1}),violet:new THREE.MeshStandardMaterial({color:0xb69aff,emissive:0x7355d9,emissiveIntensity:1.7})};
+function box(parent,x,y,z,w,h,d,material){let o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
+function sphere(parent,x,y,z,r,material,scale){let o=new THREE.Mesh(new THREE.SphereGeometry(r,16,12),material);o.position.set(x,y,z);if(scale)o.scale.set(...scale);o.castShadow=true;parent.add(o);return o}
+function cylinder(parent,x,y,z,rt,rb,h,material,seg=12){let o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),material);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o}
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(100,130),M.ground);floor.rotation.x=-Math.PI/2;floor.position.set(0,-.08,35);floor.receiveShadow=true;scene.add(floor);
+const road=new THREE.Mesh(new THREE.PlaneGeometry(10,115),M.road);road.rotation.x=-Math.PI/2;road.position.set(0,0,35);road.receiveShadow=true;scene.add(road);
+for(let i=0;i<35;i++){let x=(Math.random()-.5)*65,z=-12+Math.random()*100;let rock=sphere(scene,x,.1,z,.2, i%2?M.grass:M.wall,[1,.4,1]);}
+const buildings=[];
+function house(x,z,scale=1){let g=new THREE.Group();g.position.set(x,0,z);scene.add(g);box(g,0,1.6*scale,0,4*scale,3.2*scale,4*scale,M.wall);let roof=new THREE.Mesh(new THREE.ConeGeometry(3.15*scale,2*scale,4),M.roof);roof.rotation.y=Math.PI/4;roof.position.y=4.1*scale;roof.castShadow=true;g.add(roof);for(let side of [-1,1]){box(g,side*1.05*scale,1.9*scale,2.02*scale,.65*scale,.95*scale,.08,M.window);box(g,side*1.05*scale,1.9*scale,2.08*scale,.08*scale,1.05*scale,.1,M.wood)}let door=box(g,0,.9*scale,2.08*scale,.8*scale,1.8*scale,.14,M.wood);buildings.push({group:g,door,inside:false,name:x<0?'Abandoned Cottage':'Old Town House',x,z,scale});return g}
+for(let z=-5;z<72;z+=12){house(-9,z,1+Math.random()*.12);house(9,z+5,1+Math.random()*.12)}
+// chapel landmark
+const chapel=new THREE.Group();chapel.position.set(0,0,62);scene.add(chapel);box(chapel,0,3,0,10,6,8,M.wall);let roof=new THREE.Mesh(new THREE.ConeGeometry(7,4,4),M.roof);roof.position.set(0,8,0);roof.rotation.y=Math.PI/4;chapel.add(roof);box(chapel,0,2,4.1,1.5,3,.2,M.wood);let spire=cylinder(chapel,0,10,0,.15,.3,4,M.gold);let cross=box(chapel,0,11,0,.15,1.2,.15,M.gold);box(chapel,0,11,0,.8,.15,.15,M.gold);
+buildings.push({group:chapel,door:null,inside:false,name:'Bellwether Chapel',x:0,z:62,scale:1,chapel:true});
+// Interior rooms are separate walkable 3D spaces. The active room is revealed on entry.
+const interiors=new THREE.Group();scene.add(interiors);interiors.visible=false;
+const roomFloor=box(interiors,0,-.05,0,18,.12,18,mat(0x39313a));
+for(let x of [-9,9])box(interiors,x,2,0,.25,4,18,M.wood);
+for(let z of [-9,9])box(interiors,0,2,z,18,4,.25,M.wood);
+box(interiors,0,4,0,18,.2,18,mat(0x211f2c));
+for(let x of [-6,6])for(let z of [-5,5])box(interiors,x,1.3,z,.3,2.6,.3,M.wood);
+box(interiors,-5,.7,-2,2.5,1.4,1.2,M.wood);box(interiors,5,.5,3,2,1,.8,M.wood);
+for(let x of [-4,0,4]){let lamp=sphere(interiors,x,3.4,-7,.18,M.window);let pl=new THREE.PointLight(0xffc77b,8,9);pl.position.set(x,3.2,-6);interiors.add(pl)}
+const interiorClues=[];
+for(let [x,z,label] of [[-5,-4,'A scorched séance circle'],[4,-2,'A torn page from Elowen’s diary'],[0,6,'A cold spot beneath the floorboards']]){let m=new THREE.Group();m.position.set(x,.2,z);let r=new THREE.Mesh(new THREE.TorusGeometry(.48,.045,8,24),M.violet);r.rotation.x=Math.PI/2;m.add(r);let gem=new THREE.Mesh(new THREE.OctahedronGeometry(.2),M.violet);gem.position.y=.7;m.add(gem);interiors.add(m);interiorClues.push({group:m,label,done:false})}
+
+// trees and lanterns
+for(let i=0;i<30;i++){let x=(i%2?1:-1)*(13+Math.random()*10),z=-5+Math.random()*80;cylinder(scene,x,1.5,z,.25,.4,3,M.wood);let crown=sphere(scene,x,3.5,z,1.7,mat(0x263a37),[1.1,1.5,1]);}
+for(let z=0;z<70;z+=12)for(let x of [-5.5,5.5]){cylinder(scene,x,2,z,.07,.12,4,M.wood);sphere(scene,x,4,z,.22,M.window);let l=new THREE.PointLight(0xffc77b,13,8);l.position.set(x,4,z);scene.add(l)}
+// Character builders: individually modeled body, layered clothing, hair and facial features.
+const cast=[
+{name:'Glenn',role:'Medium',emoji:'🧔🏻',hair:0x17131a,coat:0x28334b,skin:0x98684d,beard:true,style:'black'},
+{name:'Celia',role:'Warden',emoji:'🛡️',hair:0x100d12,coat:0x394052,skin:0xc18c72,style:'curls'},
+{name:'Matthew',role:'Seer',emoji:'👨🏻',hair:0x69472f,coat:0x263e5a,skin:0xe0b89b,stubble:true,blueEyes:true},
+{name:'Todd',role:'Relic Hunter',emoji:'📚',hair:0xd3a95e,coat:0x66523b,skin:0xe2c09f,glasses:true},
+{name:'Brenda',role:'Occult Medic',emoji:'🕯️',hair:0x762a30,coat:0x53313b,skin:0xe4b79d,style:'wavy'}
+];
+function makeCharacter(c){let g=new THREE.Group();let coat=mat(c.coat),skin=mat(c.skin),hair=mat(c.hair),dark=mat(0x171722),eye=mat(c.blueEyes?0x4c9fe5:0x28232b,.3),cloth=mat(0x1b202b);cylinder(g,-.24,.52,0,.14,.18,1.05,dark);cylinder(g,.24,.52,0,.14,.18,1.05,dark);box(g,0,1.35,0,.72,.95,.42,coat);box(g,0,1.05,.225,.3,.58,.035,cloth);cylinder(g,0,1.95,0,.13,.13,.25,skin);sphere(g,0,2.28,0,.34,skin,[.82,1.08,.78]); // ears
+sphere(g,-.29,2.28,0,.09,skin);sphere(g,.29,2.28,0,.09,skin);
+ // hair cap and individualized locks
+ sphere(g,0,2.52,-.035,.35,hair,[1, .62,1]);
+ if(c.style==='curls'){for(let i=0;i<18;i++){let a=i/18*Math.PI*2;sphere(g,Math.cos(a)*.3,2.25+Math.sin(i*4)*.12,Math.sin(a)*.27,.105,hair,[1.1,1.25,1])}}
+ else if(c.style==='wavy'){for(let i=0;i<9;i++){let x=(i-4)*.075;sphere(g,x,2.22+Math.sin(i*1.5)*.05,-.24,.09,hair,[.8,1.7,.9])}}
+ else{sphere(g,0,2.44,.25,.16,hair,[1.5,.45,.55]);if(c.style==='black')sphere(g,0,2.6,-.13,.31,hair,[1,.45,1])}
+ // eyes, brows, nose and mouth
+ for(let x of [-.12,.12]){sphere(g,x,2.31,.292,.035,eye);box(g,x,2.39,.3,.1,.025,.025,hair)}
+ sphere(g,0,2.23,.34,.045,skin,[.7,1,1]);box(g,0,2.12,.31,.13,.025,.035,dark);
+ if(c.beard){sphere(g,0,2.03,.24,.19,hair,[1,.65,.65]);sphere(g,-.12,2.14,.28,.1,hair,[.8,.7,.7]);sphere(g,.12,2.14,.28,.1,hair,[.8,.7,.7])}
+ if(c.stubble){for(let i=0;i<14;i++){let a=i/14*Math.PI*2;sphere(g,Math.cos(a)*.15,2.07+Math.sin(a)*.08,.29,.018,hair)}}
+ if(c.glasses){for(let x of [-.12,.12]){let ring=new THREE.Mesh(new THREE.TorusGeometry(.085,.012,6,16),M.gold);ring.position.set(x,2.31,.31);g.add(ring)}box(g,0,2.31,.31,.08,.018,.018,M.gold)}
+ // arms and distinctive props
+ for(let x of [-.48,.48]){let arm=cylinder(g,x,1.42,0,.09,.11,.72,coat);arm.rotation.z=x<0?-.15:.15}
+ if(c.role==='Warden'){let shield=new THREE.Mesh(new THREE.CylinderGeometry(.38,.32,.09,6),M.gold);shield.position.set(.58,1.45,.22);shield.rotation.x=Math.PI/2;g.add(shield)}
+ if(c.role==='Relic Hunter'){box(g,-.52,1.15,.15,.28,.38,.14,M.wood)}
+ if(c.role==='Occult Medic'){sphere(g,.52,1.35,.12,.12,M.violet)}
+ if(c.role==='Seer'){sphere(g,.48,1.5,.12,.12,M.violet)}
+ if(c.role==='Medium'){sphere(g,.5,1.45,.12,.12,M.violet)}
+ g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});return g}
+let selected=0,player=new THREE.Group(),avatars=cast.map(makeCharacter);avatars.forEach((a,i)=>{a.visible=i===0;player.add(a)});scene.add(player);player.position.set(0,0,4);
+// Procedural animation rig: independently articulated limbs, breathing, blinking and role glows.
+const rigs=avatars.map((av)=>{const limbs=[];av.traverse(o=>{if(o.isMesh&&o.geometry&&o.geometry.type==='CylinderGeometry'&&o.position.y<1.8)limbs.push(o)});return {root:av,limbs,phase:Math.random()*6}});
+const originalRot=rigs.map(r=>r.limbs.map(o=>o.rotation.z));
+const ghostEncounter=new THREE.Group();scene.add(ghostEncounter);ghostEncounter.visible=false;
+const bossBody=sphere(ghostEncounter,0,2.1,0,1.05,M.ghost,[.85,1.55,.8]);
+const bossCloak=new THREE.Mesh(new THREE.ConeGeometry(1.25,2.5,9),M.ghost);bossCloak.position.y=.9;ghostEncounter.add(bossCloak);
+for(let x of [-.32,.32]){sphere(ghostEncounter,x,2.45,.78,.13,M.violet);sphere(ghostEncounter,x,2.45,.82,.045,M.window)}
+const bossRing=new THREE.Mesh(new THREE.TorusGeometry(1.8,.07,8,40),M.violet);bossRing.rotation.x=Math.PI/2;bossRing.position.y=.15;ghostEncounter.add(bossRing);
+let bossHealth=5,bossActive=false,bossDefeated=false,inBuilding=false,activeBuilding=null,interiorIndex=0,indoorDone=0,attackCooldown=0;
+
+const wraithName='Jonah Vale';
+const identityFragments=[
+'An old newspaper clipping: “JONAH VALE, BELL-RINGER, LOST IN THE 1891 CHAPEL FIRE.”',
+'A town burial ledger lists Jonah Vale, but the grave column is scratched out. A note says: “No body recovered.”',
+'Elowen’s hidden letter reads: “Jonah rang the bell to warn us. They sealed him in the tower and called him a monster.”'
+];
+const clues=[
+{x:-3,z:12,id:'The burned newspaper',gift:'sight',desc:identityFragments[0]},
+{x:4,z:23,id:'The burial ledger',gift:'relic',desc:identityFragments[1]},
+{x:0,z:34,id:'Elowen’s letter',gift:'speak',desc:identityFragments[2]},
+{x:1,z:49,id:'Possessed villager',gift:'heal',desc:'Brenda can perform a soul-stitching rite to free the villager.',final:true}
+];
+const markers=[];for(let c of clues){let group=new THREE.Group();group.position.set(c.x,0,c.z);scene.add(group);let ring=new THREE.Mesh(new THREE.TorusGeometry(.65,.055,8,28),M.violet);ring.rotation.x=Math.PI/2;ring.position.y=.15;group.add(ring);let gem=new THREE.Mesh(new THREE.OctahedronGeometry(.25),M.violet);gem.position.y=1;group.add(gem);let light=new THREE.PointLight(0x9875ff,2,5);light.position.y=1;group.add(light);markers.push({group,clue:c,done:false})}
+ // roaming shade
+const shade=new THREE.Group();scene.add(shade);sphere(shade,0,1.4,0,.55,M.ghost,[.8,1.7,.7]);for(let i=0;i<3;i++){let w=sphere(shade,(i-1)*.22,.5,0,.22,M.ghost,[.5,1.5,.5]);w.rotation.z=(i-1)*.5}for(let x of [-.16,.16])sphere(shade,x,1.65,.43,.055,M.violet);shade.position.set(2,0,28);
+let saved=0,resolve=3,started=false,nearest=null,clueCount=0,completed=false,nearestIndoor=null;
+const $=id=>document.getElementById(id);function notify(s){$('message').textContent=s;$('message').style.opacity=1;clearTimeout(notify.t);notify.t=setTimeout(()=>$('message').style.opacity=0,2800)}
+function updateHUD(){ $('clues').textContent=clueCount+' / 3';$('saved').textContent=saved;$('resolve').textContent=resolve;let found=markers.filter(m=>m.done&&!m.clue.final).map(m=>m.clue.id);$('journalText').innerHTML='<b>THE WRAITH’S IDENTITY</b><br>'+found.join('<br>')+'<br><br>'+(clueCount===3?'<b>IDENTIFIED: JONAH VALE</b><br>He was Bellwether’s bell-ringer, trapped in the tower during the 1891 fire. His name must be spoken to break the binding.':'Identity fragments recovered: '+clueCount+' / 3<br>Search the town for the newspaper, burial ledger and Elowen’s letter.')+'<br><br>People safe: '+saved+'.'}
+function roster(){ $('roster').innerHTML=cast.map((c,i)=>`<button class="person ${i===selected?'active':''}" data-i="${i}"><span>${c.emoji}</span><b>${c.name}</b></button>`).join('');document.querySelectorAll('.person').forEach(b=>b.onclick=()=>switchTo(+b.dataset.i))}
+function switchTo(i){selected=i;avatars.forEach((a,j)=>a.visible=i===j);roster();notify(cast[i].name+' · '+cast[i].role)}
+function examine(){if(inBuilding){let n=interiorClues.find(c=>!c.done&&player.position.distanceTo(c.group.position)<2.4);if(n){n.done=true;indoorDone++;notify('Indoor evidence: '+n.label+'. The room’s story becomes clearer.');return}notify('Search the furniture and glowing marks more closely.');return}if(bossActive){notify('The Wraith is attacking. Use POWER to strike with your bearer ability.');return}if(!nearest){notify('Move closer to a glowing trace.');return}let m=nearest;if(m.done){notify('This location has already been investigated.');return}let c=m.clue;
+ if(c.final){if(clueCount<3){notify('The bell tower is sealed. Find all three identity clues first.');return}if(cast[selected].name==='Brenda'){saved++;completed=true;player.rotation.y=Math.PI;avatars[selected].rotation.x=-.18;notify('EXORCISM: Brenda raises the soul-lantern. Threads of violet light unravel the possession and the villager collapses safely into her arms. Case solved.')}else if(cast[selected].name==='Glenn'){saved++;completed=true;avatars[selected].rotation.x=-.2;notify('EXORCISM: Glenn calls Elowen across the veil. A spectral chain snaps and the host is released!')}else if(cast[selected].name==='Celia'){saved++;resolve=Math.max(0,resolve-1);notify('Celia shields the villager as the shade is driven out!')}else{resolve=Math.max(0,resolve-1);notify('The possession lashes out. Switch to Brenda, Glenn, or Celia.');updateHUD();return}m.done=true;
+ }else{m.done=true;clueCount++;notify(cast[selected].name+' investigates: '+c.desc)}
+ updateHUD();if(clueCount===3)notify('IDENTITY REVEALED: JONAH VALE. The bell-ringer was trapped in the tower in 1891. Speak his true name to challenge the Wraith.')}
+function enterBuilding(){if(inBuilding){inBuilding=false;interiors.visible=false;player.position.set(activeBuilding.x<0?-6:6,0,activeBuilding.z+3);activeBuilding=null;notify('You step back into the moonlit street.');return}
+ let b=buildings.find(v=>Math.hypot(player.position.x-v.x,player.position.z-v.z)<4.2);if(!b){notify('Move close to a marked doorway to enter.');return}
+ if(b.chapel&&clueCount<3){notify('The chapel seal resists you. Find the three town clues first.');return}
+ activeBuilding=b;inBuilding=true;interiors.visible=true;player.position.set(0,0,7);interiorIndex=0;notify('Entered '+b.name+'. Search the room for traces.')}
+function usePower(){if(bossDefeated){notify('The Bell Tower Wraith has been banished.');return}
+ if(!bossActive){if(clueCount<3){notify('You cannot challenge it yet. Discover the Wraith’s identity from all three town clues.');return}if(cast[selected].name!=='Glenn'){notify('The Wraith will not emerge until Glenn, the Medium, is ready to speak its true name. Switch to Glenn.');return}bossActive=true;ghostEncounter.visible=true;ghostEncounter.position.set(player.position.x,0,player.position.z-5);bossHealth=5;notify('GLENN SPEAKS: “JONAH VALE!” The Bell Tower Wraith tears free of the tower. The true name has broken its first seal — now fight!');return}
+ if(attackCooldown>0){notify('Your power is still recharging.');return}
+ const role=cast[selected].role;let damage=0;
+ if(role==='Warden'){damage=2;notify('Celia casts a binding ward. The Wraith is pinned!')}
+ else if(role==='Medium'){damage=2;notify('Glenn repeats Jonah Vale’s true name. The Wraith’s stolen shape fractures!')}
+ else if(role==='Seer'){damage=1;notify('Matthew reveals the Wraith’s exposed sigil.')}
+ else if(role==='Relic Hunter'){damage=2;notify('Todd activates the relic and tears through its veil!')}
+ else{damage=1;resolve=Math.min(3,resolve+1);notify('Brenda steadies the team and mends their resolve.')}
+ bossHealth-=damage;attackCooldown=1.25;
+ if(bossHealth<=0){bossHealth=0;bossDefeated=true;bossActive=false;ghostEncounter.visible=false;notify('THE WRAITH IS BANISHED. The chapel bell falls silent.')}
+ else notify('Wraith strength: '+bossHealth+' / 5. Switch bearers and combine powers.');
+ updateHUD()}
+$('enter').onclick=enterBuilding;$('power').onclick=usePower;
+$('examine').onclick=examine;$('notes').onclick=()=>$('journal').style.display='block';$('close').onclick=()=>$('journal').style.display='none';
+$('start').onclick=()=>{started=true;$('intro').style.display='none';notify('Welcome to Bellwether. Find the three identity clues. Learn the Wraith’s living name before confronting it.')}
+const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.code==='Space'){e.preventDefault();examine()}if(e.key.toLowerCase()==='e')enterBuilding();if(e.key.toLowerCase()==='f')usePower();if('12345'.includes(e.key))switchTo(+e.key-1)});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+let joy={x:0,y:0,on:false};const pad=$('move'),nub=$('nub');function moveJoy(e){let r=pad.getBoundingClientRect(),dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,l=Math.hypot(dx,dy),max=34;if(l>max){dx=dx/l*max;dy=dy/l*max}joy.x=dx/max;joy.y=dy/max;nub.style.transform=`translate(${dx}px,${dy}px)`}pad.onpointerdown=e=>{joy.on=true;pad.setPointerCapture(e.pointerId);moveJoy(e)};pad.onpointermove=e=>{if(joy.on)moveJoy(e)};function stopJoy(){joy.on=false;joy.x=joy.y=0;nub.style.transform=''}pad.onpointerup=stopJoy;pad.onpointercancel=stopJoy;
+let last=0;const clock=new THREE.Clock();
+function animate(t){requestAnimationFrame(animate);let dt=Math.min(clock.getDelta(),.04);if(started&&!completed){attackCooldown=Math.max(0,attackCooldown-dt);let x=joy.x+(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),z=-joy.y+(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0);let l=Math.hypot(x,z);if(l>.08){let dx=x/l,dz=z/l;player.position.x=THREE.MathUtils.clamp(player.position.x+dx*dt*4.5,inBuilding?-7.5:-6,inBuilding?7.5:6);player.position.z=THREE.MathUtils.clamp(player.position.z+dz*dt*5,inBuilding?-7.5:0,inBuilding?7.5:58);player.rotation.y=Math.atan2(dx,dz)}
+ let walking=l>.08;let rig=rigs[selected];rig.phase+=dt*(walking?10:2.2);avatars.forEach((av,i)=>{let r=rigs[i],swing=walking?Math.sin(r.phase)*.48:Math.sin(r.phase)*.025;r.limbs.forEach((lim,j)=>{lim.rotation.z=(originalRot[i][j]||0)+swing*(j%2?1:-1)});av.position.y=Math.sin(r.phase*2)*.025;av.rotation.z=walking?Math.sin(r.phase)*.025:0});
+ if(inBuilding){nearestIndoor=interiorClues.find(c=>!c.done&&player.position.distanceTo(c.group.position)<2.4)||null}
+ if(bossActive){ghostEncounter.position.x+=Math.sin(t*.001)*dt*.7;ghostEncounter.position.z=player.position.z-4+Math.sin(t*.0015)*.4;ghostEncounter.rotation.y=Math.sin(t*.001)*.4;bossRing.rotation.z=t*.0015;bossBody.scale.y=1.55+Math.sin(t*.004)*.08}
+ }
+ // Smooth third-person follow camera, looking over shoulder
+ let desired=inBuilding?new THREE.Vector3(player.position.x,4.4,player.position.z-7):new THREE.Vector3(player.position.x,player.position.y+4.2,player.position.z-7.2);camera.position.lerp(desired,.09);camera.lookAt(player.position.x,1.5,player.position.z+(inBuilding?1:4));
+ // Shade drifts toward the street and pulses
+ shade.position.x=2+Math.sin(t*.0007)*1.8;shade.position.y=.15+Math.sin(t*.002)*.22;shade.rotation.y=Math.sin(t*.0005)*.3;
+ nearest=null;let nearestD=3.4;for(let m of markers){m.group.visible=!inBuilding;m.group.rotation.y=t*.0005;let d=player.position.distanceTo(m.group.position);if(!inBuilding&&!m.done&&d<nearestD){nearest=m;nearestD=d}}
+ if(inBuilding){let b=interiorClues.find(c=>!c.done&&player.position.distanceTo(c.group.position)<2.4);$('hint').textContent=b?'Indoor clue: '+b.label+' · EXAMINE':'Indoor investigation · Find the glowing evidence · ENTER to leave'}else if(nearest)$('hint').textContent='Nearby: '+nearest.clue.id+' · Tap EXAMINE';else if(bossActive)$('hint').textContent='BOSS: Bell Tower Wraith · POWER to attack · Strength '+bossHealth+'/5';else $('hint').textContent='Explore Bellwether · ENTER at doors · Switch between all five bearers';
+ // shade threatens but doesn't end the prototype demo
+ if(player.position.distanceTo(shade.position)<1.4&&Math.random()<.008){resolve=Math.max(0,resolve-1);$('resolve').textContent=resolve;notify('A shade brushes past you. Keep your distance!')}
+ renderer.render(scene,camera)}
+requestAnimationFrame(animate);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2))});
+roster();updateHUD();
+$('loading').style.display='none';
+} catch (err) {
+  console.error('Bearers of the Veil startup failed:', err);
+  $('loading').style.display='none';
+  $('errorText').textContent = 'The game could not start: ' + (err && err.message ? err.message : 'unknown startup error') + '. This browser may not support WebGL, or the 3D engine could not be downloaded.';
+  $('loadError').style.display='grid';
+}
+})();
+$('retry').addEventListener('click',()=>location.reload());
+</script></body></html>
